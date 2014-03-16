@@ -1,27 +1,16 @@
 
 <#
-$RunSimulation = $true
-$Verbose = $true
-$FileTypesToRemove = @('*.dll', '*.pdb', '*.xml')
-$FolderNamesToInclude = @('bin', 'obj')
-$FolderNamesToIgnore = @('packages', '_tools$', '_build')
-#$BasePath = (Get-Location -PSProvider FileSystem).ProviderPath
-#$BasePath = "D:\"
+$computerName = "192.168.1.2"
+$securePassword = ConvertTo-SecureString "password" -AsPlainText -force
+$Credential = New-Object System.Management.Automation.PsCredential("domain\username",$securePassword)
 #>
 
 
-$computerName = "10.0.0.9"
-$securePassword = ConvertTo-SecureString "password" -AsPlainText -force
-$Credential = New-Object System.Management.Automation.PsCredential("domain\username",$securePassword)
-
-
-
-#$service = Get-Service -ComputerName 10.0.0.9
 # [System.Management.Automation.PSCredential]$Credential = $null
 if (!($Credential))
 {
 	#prompt for user credential
-	$Credential = get-credential -credential Domain\username
+	$Credential = Get-Credential -credential Domain\username
 }
 
 $scriptblock = {
@@ -41,21 +30,16 @@ $scriptblock = {
         }
     }
 
-    # Invoke-Command -ComputerName $computerName -Authentication Kerberos -Credential $credential -ScriptBlock $scriptBlock -ArgumentList $ServiceName, $Control
     # Invoke-Command -ComputerName $computerName -Credential $credential -ScriptBlock $scriptBlock -ArgumentList $ServiceName, $Control
-	# Invoke-Command -ComputerName 10.0.0.9 -Credential $Credential -ScriptBlock {Get-Process}
-
-	# http://technet.microsoft.com/en-us/library/dd819505.aspx
-	# enter-pssession 10.0.0.9
-
-	$session = new-pssession -Credential $Credential -computername 10.0.0.9
-	# $session = Enter-PSSession -Credential $Credential -computername 10.0.0.9
+	$session = new-pssession -Credential $Credential -computername $computerName
+    # Invoke-Command -session $session -ScriptBlock $scriptBlock -ArgumentList $ServiceName, $Control
 	invoke-command -session $session {
 		hostname
-		get-service -Name service1
-		get-service -Name service2
+		get-service -Name LinkBlog.Denormalizer
+		get-service -Name LinkBlog.Server
+		#get-service -Name service2
 	}
-	exit-pssession
+	Remove-PSSession $Session
 
 
 # Set-ExecutionPolicy Unrestricted
@@ -65,7 +49,6 @@ $scriptblock = {
 # Enable-PSRemoting –force
 # winrm quickconfig
 # winrm set winrm/config/client @{TrustedHosts="RemoteComputerName"}
-# winrm set winrm/config/client @{TrustedHosts="10.0.0.200"}
 # set-item WSMan:\localhost\service\AllowUnencrypted $true
 # Get-ItemProperty -path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
 # New-Itemproperty -name LocalAccountTokenFilterPolicy -path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -propertyType DWord -value 1
