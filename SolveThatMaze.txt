@@ -1,0 +1,13 @@
+function getNextDirection(prevDir) {
+  switch(prevDir)
+  {
+      case 'right':
+      	return ['up','right','down','left'];
+      case 'up':
+      	return ['left','up','right','down'];
+      case 'down':
+      	return ['right','down','left','up'];
+      case 'left':
+      	return ['down','left','up','right'];
+  }
+}
